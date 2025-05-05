@@ -1,0 +1,10 @@
+﻿  car_movement.cpp
+C:\Users\Bohdan\Desktop\algo_cg\car_movement\car_movement.cpp(39,30): warning C4244: 'argument': conversion from 'double' to 'GLfloat', possible loss of data
+C:\Users\Bohdan\Desktop\algo_cg\car_movement\car_movement.cpp(99,35): warning C4244: 'argument': conversion from 'int' to 'GLfloat', possible loss of data
+C:\Users\Bohdan\Desktop\algo_cg\car_movement\car_movement.cpp(100,34): warning C4244: 'argument': conversion from 'int' to 'GLfloat', possible loss of data
+C:\Users\Bohdan\Desktop\algo_cg\car_movement\car_movement.cpp(105,20): warning C4244: 'argument': conversion from 'int' to 'GLfloat', possible loss of data
+C:\Users\Bohdan\Desktop\algo_cg\car_movement\car_movement.cpp(106,20): warning C4244: 'argument': conversion from 'int' to 'GLfloat', possible loss of data
+C:\Users\Bohdan\Desktop\algo_cg\car_movement\car_movement.cpp(119,35): warning C4305: '+=': truncation from 'double' to 'float'
+C:\Users\Bohdan\Desktop\algo_cg\car_movement\car_movement.cpp(126,43): warning C4305: '-=': truncation from 'double' to 'float'
+C:\Users\Bohdan\Desktop\algo_cg\car_movement\car_movement.cpp(140,17): warning C4804: '<': unsafe use of type 'bool' in operation
+  car_movement.vcxproj -> C:\Users\Bohdan\Desktop\algo_cg\x64\Debug\car_movement.exe
