@@ -1,4 +1,4 @@
-﻿#define SDL_MAIN_USE_CALLBACKS 1  /* use the callbacks instead of main() */
+﻿#define SDL_MAIN_USE_CALLBACKS 1
 #include <SDL3/SDL.h>
 #include <SDL3/SDL_main.h>
 #include <SDL3/SDL_opengl.h>
@@ -7,136 +7,120 @@
 
 #define WINDOW_WIDTH 640
 #define WINDOW_HEIGHT 480
-#define STEP_RATE_IN_MILLISECONDS 25
 
 static SDL_Window* window = NULL;
 SDL_GLContext glcontext = NULL;
 Uint64 previousTime, currentTime;
 
-// Car properties
-float posx = 0.0f;    // X position of the car
-float posz = 0.0f;    // Z position of the car
-float angle = 0.0f;   // Rotation angle of the car (in radians)
-float speed = 0.2f;   // Movement speed
-float rotation_speed = 0.1f; // Rotation speed in radians
+float posx = 0.0f;
+float posz = 0.0f;
+float angle = 0.0f;
+float speed = 0.1f;
+float rotation_speed = 0.05f;
 
-// Keyboard state
-const Uint8* keystate;
+bool keyUp = false;
+bool keyDown = false;
+bool keyLeft = false;
+bool keyRight = false;
 
-/* Replace gluPerspective with this helper */
 void setPerspective(float fovY, float aspect, float zNear, float zFar) {
-    float ymax = 1;
+    float ymax = zNear * tanf(fovY * M_PI / 360.0f);
     float xmax = ymax * aspect;
     glFrustum(-xmax, xmax, -ymax, ymax, zNear, zFar);
 }
 
 void drawCar() {
-    // Save the current matrix
     glPushMatrix();
-
-    // Apply transformations: first translate to position, then rotate
     glTranslatef(posx, 0.0f, posz);
-    glRotatef(angle * 180.0f / M_PI, 0.0f, 1.0f, 0.0f); // Convert radians to degrees
+    glRotatef(angle * 180.0f / (float)M_PI, 0.0f, 1.0f, 0.0f);
 
-    // Draw the car body (cube)
     glBegin(GL_QUADS);
 
-    // Top face (y = 0.5)
-    glColor3f(1.0f, 0.0f, 0.0f); // Red
+    glColor3f(1.0f, 0.0f, 0.0f);
     glVertex3f(-0.5f, 0.5f, -1.0f);
     glVertex3f(-0.5f, 0.5f, 0.5f);
     glVertex3f(0.5f, 0.5f, 0.5f);
     glVertex3f(0.5f, 0.5f, -1.0f);
 
-    // Bottom face (y = -0.5)
-    glColor3f(0.5f, 0.0f, 0.0f); // Dark red
+    glColor3f(0.5f, 0.0f, 0.0f);
     glVertex3f(-0.5f, -0.5f, -1.0f);
     glVertex3f(0.5f, -0.5f, -1.0f);
     glVertex3f(0.5f, -0.5f, 0.5f);
     glVertex3f(-0.5f, -0.5f, 0.5f);
 
-    // Front face (z = 0.5)
-    glColor3f(0.0f, 0.0f, 1.0f); // Blue
+    glColor3f(0.0f, 0.0f, 1.0f);
     glVertex3f(-0.5f, -0.5f, 0.5f);
     glVertex3f(0.5f, -0.5f, 0.5f);
     glVertex3f(0.5f, 0.5f, 0.5f);
     glVertex3f(-0.5f, 0.5f, 0.5f);
 
-    // Back face (z = -1.0)
-    glColor3f(0.0f, 0.0f, 0.5f); // Dark blue
+    glColor3f(0.0f, 0.0f, 0.5f);
     glVertex3f(-0.5f, -0.5f, -1.0f);
     glVertex3f(-0.5f, 0.5f, -1.0f);
     glVertex3f(0.5f, 0.5f, -1.0f);
     glVertex3f(0.5f, -0.5f, -1.0f);
 
-    // Left face (x = -0.5)
-    glColor3f(0.0f, 1.0f, 0.0f); // Green
+    glColor3f(0.0f, 1.0f, 0.0f);
     glVertex3f(-0.5f, -0.5f, -1.0f);
     glVertex3f(-0.5f, -0.5f, 0.5f);
     glVertex3f(-0.5f, 0.5f, 0.5f);
     glVertex3f(-0.5f, 0.5f, -1.0f);
 
-    // Right face (x = 0.5)
-    glColor3f(0.0f, 0.5f, 0.0f); // Dark green
+    glColor3f(0.0f, 0.5f, 0.0f);
     glVertex3f(0.5f, -0.5f, -1.0f);
     glVertex3f(0.5f, 0.5f, -1.0f);
     glVertex3f(0.5f, 0.5f, 0.5f);
     glVertex3f(0.5f, -0.5f, 0.5f);
 
     glEnd();
-
-    // Restore the matrix
     glPopMatrix();
 }
 
 void drawGround() {
-    // Draw a grid to represent the ground
     glBegin(GL_LINES);
-    glColor3f(0.5f, 0.5f, 0.5f); // Gray
-
-    // Draw lines along X axis
+    glColor3f(0.5f, 0.5f, 0.5f);
     for (int i = -10; i <= 10; i++) {
-        glVertex3f(-10.0f, -0.5f, i);
-        glVertex3f(10.0f, -0.5f, i);
+        glVertex3f(-10.0f, -0.5f, (GLfloat)i);
+        glVertex3f(10.0f, -0.5f, (GLfloat)i);
     }
-
-    // Draw lines along Z axis
     for (int i = -10; i <= 10; i++) {
-        glVertex3f(i, -0.5f, -10.0f);
-        glVertex3f(i, -0.5f, 10.0f);
+        glVertex3f((GLfloat)i, -0.5f, -10.0f);
+        glVertex3f((GLfloat)i, -0.5f, 10.0f);
     }
-
     glEnd();
 }
 
 void processInput() {
-     const bool* keystate = SDL_GetKeyboardState(NULL);
+    currentTime = SDL_GetTicks();
+    float deltaTime = (currentTime - previousTime) / 1000.0f;
+    previousTime = currentTime;
 
-    // Rotate left with left arrow
-    if (keystate[SDL_SCANCODE_LEFT]) {
-        angle -= rotation_speed;
-        // Keep angle in [0, 2π) range
-        if (angle < 0) angle += 2 * M_PI;
+    float moveSpeed = speed * deltaTime * 60.0f;
+    float turnSpeed = rotation_speed * deltaTime * 60.0f;
+
+    if (keyLeft) {
+        angle += turnSpeed;
+        if (angle >= 2.0f * (float)M_PI) angle -= 2.0f * (float)M_PI;
+    }
+    if (keyRight) {
+        angle -= turnSpeed;
+        if (angle < 0.0f) angle += 2.0f * (float)M_PI;
     }
 
-    // Rotate right with right arrow
-    if (keystate[SDL_SCANCODE_RIGHT]) {
-        angle += rotation_speed;
-        // Keep angle in [0, 2π) range
-        if (angle >= 2 * M_PI) angle -= 2 * M_PI;
-    }
+    float dx = moveSpeed * cosf(angle);
+    float dz = moveSpeed * sinf(angle);
 
-    // Move forward with up arrow
-    if (keystate[SDL_SCANCODE_UP]) {
-        float dx = speed * cosf(angle);
-        float dz = speed * sinf(angle);
+    if (keyUp) {
         posx += dx;
-        posz -= dz; // Negative because OpenGL Z is pointing away from viewer
+        posz -= dz;
+    }
+    if (keyDown) {
+        posx -= dx;
+        posz += dz;
     }
 }
 
-SDL_AppResult SDL_AppInit(void** appstate, int argc, char* argv[])
-{
+SDL_AppResult SDL_AppInit(void** appstate, int argc, char* argv[]) {
     if (SDL_Init(SDL_INIT_VIDEO) < 0) {
         SDL_Log("Couldn't initialize SDL: %s", SDL_GetError());
         return SDL_APP_FAILURE;
@@ -151,7 +135,7 @@ SDL_AppResult SDL_AppInit(void** appstate, int argc, char* argv[])
     SDL_SetAppMetadata("Car Movement", "1.0", "OpenGL Car Demo");
 
     glcontext = SDL_GL_CreateContext(window);
-    glClearColor(0.5f, 0.7f, 1.0f, 1.0f);  // Sky blue background
+    glClearColor(0.5f, 0.7f, 1.0f, 1.0f);
 
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
@@ -164,35 +148,47 @@ SDL_AppResult SDL_AppInit(void** appstate, int argc, char* argv[])
     return SDL_APP_CONTINUE;
 }
 
-SDL_AppResult SDL_AppEvent(void* appstate, SDL_Event* event)
-{
+SDL_AppResult SDL_AppEvent(void* appstate, SDL_Event* event) {
     if (event->type == SDL_EVENT_QUIT) {
         return SDL_APP_SUCCESS;
     }
+
+    if (event->type == SDL_EVENT_KEY_DOWN) {
+        switch (event->key.key) {
+        case SDLK_UP: keyUp = true; break;
+        case SDLK_DOWN: keyDown = true; break;
+        case SDLK_LEFT: keyLeft = true; break;
+        case SDLK_RIGHT: keyRight = true; break;
+        case SDLK_ESCAPE: return SDL_APP_SUCCESS;
+        }
+    }
+    else if (event->type == SDL_EVENT_KEY_UP) {
+        switch (event->key.key) {
+        case SDLK_UP: keyUp = false; break;
+        case SDLK_DOWN: keyDown = false; break;
+        case SDLK_LEFT: keyLeft = false; break;
+        case SDLK_RIGHT: keyRight = false; break;
+        }
+    }
+
     return SDL_APP_CONTINUE;
 }
 
-SDL_AppResult SDL_AppIterate(void* appstate)
-{
+SDL_AppResult SDL_AppIterate(void* appstate) {
     processInput();
 
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glLoadIdentity();
-
-    // Position the camera slightly above and behind the car for better viewing
-    // Manual camera positioning instead of gluLookAt
-    glTranslatef(0.0f, -2.0f, -10.0f);
-    glRotatef(20.0f, 1.0f, 0.0f, 0.0f); // Tilt the camera down a bit
-
     drawGround();
     drawCar();
 
     SDL_GL_SwapWindow(window);
+    SDL_Delay(16); // ~60 FPS
+
     return SDL_APP_CONTINUE;
 }
 
-void SDL_AppQuit(void* appstate, SDL_AppResult result)
-{
+void SDL_AppQuit(void* appstate, SDL_AppResult result) {
     SDL_GL_DestroyContext(glcontext);
     SDL_DestroyWindow(window);
     SDL_Quit();
