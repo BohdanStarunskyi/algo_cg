@@ -132,7 +132,7 @@ SDL_AppResult SDL_AppInit(void** appstate, int argc, char* argv[]) {
         return SDL_APP_FAILURE;
     }
 
-    SDL_SetAppMetadata("Car Movement", "1.0", "OpenGL Car Demo");
+    SDL_SetAppMetadata("Car Movement", "1.0", "com.bohdanstarunskyi.car");
 
     glcontext = SDL_GL_CreateContext(window);
     glClearColor(0.5f, 0.7f, 1.0f, 1.0f);
@@ -183,7 +183,7 @@ SDL_AppResult SDL_AppIterate(void* appstate) {
     drawCar();
 
     SDL_GL_SwapWindow(window);
-    SDL_Delay(16); // ~60 FPS
+    SDL_Delay(16);
 
     return SDL_APP_CONTINUE;
 }

@@ -21,8 +21,8 @@
   <PropertyGroup Label="Globals">
     <VCProjectVersion>17.0</VCProjectVersion>
     <Keyword>Win32Proj</Keyword>
-    <ProjectGuid>{8952a707-e8d4-474b-9ee4-64bd0e48dc75}</ProjectGuid>
-    <RootNamespace>teris</RootNamespace>
+    <ProjectGuid>{ad71ea86-160e-4266-bfae-22a5862e1340}</ProjectGuid>
+    <RootNamespace>textures</RootNamespace>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
@@ -104,10 +104,13 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_DEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
+      <AdditionalIncludeDirectories>C:\libs\SDL3\include</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalLibraryDirectories>C:\libs\SDL3\lib\x64</AdditionalLibraryDirectories>
+      <AdditionalDependencies>SDL3.lib; opengl32.lib;</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -127,20 +130,13 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="framework.h" />
-    <ClInclude Include="Resource.h" />
-    <ClInclude Include="targetver.h" />
-    <ClInclude Include="teris.h" />
+    <ClCompile Include="textures.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="teris.cpp" />
-  </ItemGroup>
-  <ItemGroup>
-    <ResourceCompile Include="teris.rc" />
-  </ItemGroup>
-  <ItemGroup>
-    <Image Include="small.ico" />
-    <Image Include="teris.ico" />
+    <Image Include="..\..\..\Downloads\dice1.bmp" />
+    <Image Include="..\..\..\Downloads\dice2.bmp" />
+    <Image Include="..\..\..\Downloads\grass.jpg" />
+    <Image Include="..\..\..\Downloads\wood.jpg" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

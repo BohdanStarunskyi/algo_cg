@@ -1,4 +1,4 @@
-#define SDL_MAIN_USE_CALLBACKS 1  /* use the callbacks instead of main() */
+#define SDL_MAIN_USE_CALLBACKS 1 
 #include <SDL3/SDL.h>
 #include <SDL3/SDL_main.h>
 #include <SDL3/SDL_opengl.h>
@@ -15,30 +15,25 @@ static SDL_Window* window = NULL;
 SDL_GLContext glcontext = NULL;
 Uint64 previousTime, currentTime;
 
-// Physics constants
-const float GRAVITY = 9.81f;      // Acceleration due to gravity (m/s²)
-const float RESTITUTION = 0.85f;  // Coefficient of restitution (increased bounciness)
-const float TIME_SCALE = 1.0f;    // Scale factor for time (increased for faster simulation)
+const float GRAVITY = 9.81f;     
+const float RESTITUTION = 0.85f; 
+const float TIME_SCALE = 1.0f;  
 
-// Ball properties
-float ballX = 0.0f;               // X position of the ball center
-float ballY = WINDOW_HEIGHT / 3.0f; // Y position of the ball center (starts high)
-float velocityY = 0.0f;           // Vertical velocity (initially at rest)
-float velocityX = 0.0f;           // Horizontal velocity (for enhancements)
+float ballX = 0.0f;              
+float ballY = WINDOW_HEIGHT / 3.0f; 
+float velocityY = 0.0f;         
+float velocityX = 0.0f;     
 
-// User interaction
 bool isDragging = false;
 bool isRunning = false;
 float dragStartX, dragStartY;
 
 void drawBall() {
-    // Draw the ball as a circle
-    glColor3f(1.0f, 0.5f, 0.0f); // Orange ball
+    glColor3f(1.0f, 0.5f, 0.0f);
 
     glBegin(GL_TRIANGLE_FAN);
-    glVertex2f(ballX, ballY); // Center of the circle
+    glVertex2f(ballX, ballY);
 
-    // Draw the circle outline
     for (int i = 0; i <= 360; i += 10) {
         float angle_rad = i * M_PI / 180.0f;
         float px = ballX + BALL_RADIUS * cosf(angle_rad);
@@ -48,9 +43,8 @@ void drawBall() {
 
     glEnd();
 
-    // If we're dragging, draw a line showing the potential velocity
     if (isDragging) {
-        glColor3f(1.0f, 1.0f, 1.0f); // White line
+        glColor3f(1.0f, 1.0f, 1.0f);
         glBegin(GL_LINES);
         glVertex2f(ballX, ballY);
         glVertex2f(dragStartX, dragStartY);
@@ -59,8 +53,7 @@ void drawBall() {
 }
 
 void drawGround() {
-    // Draw the ground
-    glColor3f(0.3f, 0.3f, 0.3f); // Dark gray
+    glColor3f(0.3f, 0.3f, 0.3f); 
     glBegin(GL_QUADS);
     glVertex2f(-WINDOW_WIDTH / 2.0f, GROUND_Y);
     glVertex2f(WINDOW_WIDTH / 2.0f, GROUND_Y);
@@ -70,33 +63,31 @@ void drawGround() {
 }
 
 void drawTrajectory() {
-    // If the ball is stationary, draw the predicted trajectory
     if (!isRunning && fabsf(velocityY) < 0.1f && ballY <= GROUND_Y + BALL_RADIUS + 1.0f) {
-        // Only draw if there's some horizontal velocity
         if (fabsf(velocityX) > 0.1f) {
-            glColor3f(0.5f, 0.5f, 0.5f); // Gray dotted line
+            glColor3f(0.5f, 0.5f, 0.5f);
             glBegin(GL_POINTS);
 
             float simX = ballX;
             float simY = ballY;
             float simVY = velocityY;
 
-            // Simulate the trajectory for a number of steps
+           
             for (int i = 0; i < 100; i++) {
                 float dt = 0.1f;
 
-                // Update position using physics equations
+            
                 simX += velocityX * dt;
                 simY += simVY * dt + 0.5f * GRAVITY * dt * dt;
                 simVY += GRAVITY * dt;
 
-                // Check for ground collision
+             
                 if (simY - BALL_RADIUS < GROUND_Y) {
                     simY = GROUND_Y + BALL_RADIUS;
                     simVY = -simVY * RESTITUTION;
                 }
 
-                // Draw the point
+               
                 glVertex2f(simX, simY);
             }
 
@@ -106,36 +97,29 @@ void drawTrajectory() {
 }
 
 void drawInstructions() {
-    // In a real implementation, you would use SDL_ttf for text rendering
-    // This is just a placeholder for where text would go
     glColor3f(1.0f, 1.0f, 1.0f);
     glRasterPos2f(-WINDOW_WIDTH / 2.0f + 20, -WINDOW_HEIGHT / 2.0f + 20);
-    // Instructions would be: "Click and drag to set velocity. Press R to reset."
 }
 
 void updatePhysics(float dt) {
     if (!isRunning) return;
 
-    // Scale the time to slow down the simulation
     dt *= TIME_SCALE;
 
-    // Update position and velocity using the equations of motion
-    ballY -= velocityY * dt + 0.5f * GRAVITY * dt * dt; // Note: SDL Y is inverted
+    ballY -= velocityY * dt + 0.5f * GRAVITY * dt * dt;
     velocityY += GRAVITY * dt;
 
-    // Apply horizontal velocity (if any)
     ballX += velocityX * dt;
 
-    // Check for collision with ground
+    
     if (ballY - BALL_RADIUS < GROUND_Y) {
-        // Bounce - reflect velocity with energy loss
-        ballY = GROUND_Y + BALL_RADIUS; // Place exactly at ground level
+       
+        ballY = GROUND_Y + BALL_RADIUS;
         velocityY = -velocityY * RESTITUTION;
 
-        // Apply friction to horizontal velocity
         velocityX *= 0.98f;
 
-        // Stop the ball if it's almost stopped
+      
         if (fabsf(velocityY) < 0.1f && fabsf(velocityX) < 0.1f) {
             velocityY = 0.0f;
             velocityX = 0.0f;
@@ -143,7 +127,7 @@ void updatePhysics(float dt) {
         }
     }
 
-    // Check for collision with walls
+   
     if (ballX - BALL_RADIUS < -WINDOW_WIDTH / 2.0f) {
         ballX = -WINDOW_WIDTH / 2.0f + BALL_RADIUS;
         velocityX = -velocityX * RESTITUTION;
@@ -176,9 +160,9 @@ SDL_AppResult SDL_AppInit(void** appstate, int argc, char* argv[])
     }
 
     glcontext = SDL_GL_CreateContext(window);
-    glClearColor(0.0f, 0.0f, 0.2f, 1.0f);  // Dark blue background
+    glClearColor(0.0f, 0.0f, 0.2f, 1.0f);
 
-    // Set up orthographic projection
+
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
     glOrtho(-WINDOW_WIDTH / 2.0f, WINDOW_WIDTH / 2.0f,
@@ -186,7 +170,7 @@ SDL_AppResult SDL_AppInit(void** appstate, int argc, char* argv[])
         -1.0f, 1.0f);
     glMatrixMode(GL_MODELVIEW);
 
-    // Enable point smoothing for trajectory
+  
     glEnable(GL_POINT_SMOOTH);
     glPointSize(2.0f);
 
@@ -200,7 +184,6 @@ SDL_AppResult SDL_AppEvent(void* appstate, SDL_Event* event)
         return SDL_APP_SUCCESS;
     }
 
-    // Handle key press events
     if (event->type == SDL_EVENT_KEY_DOWN) {
         switch (event->key.key) {
         case SDLK_R:
@@ -210,17 +193,17 @@ SDL_AppResult SDL_AppEvent(void* appstate, SDL_Event* event)
             isRunning = !isRunning;
             break;
         case SDLK_ESCAPE:
-            return SDL_APP_SUCCESS; // Exit on ESC
+            return SDL_APP_SUCCESS;
         }
     }
-    // Handle mouse events
+ 
     else if (event->type == SDL_EVENT_MOUSE_BUTTON_DOWN) {
         if (event->button.button == SDL_BUTTON_LEFT) {
-            // Convert mouse coordinates to our coordinate system
+     
             float mouseX = event->button.x - WINDOW_WIDTH / 2.0f;
             float mouseY = -event->button.y + WINDOW_HEIGHT / 2.0f;
 
-            // Check if clicked on the ball
+          
             float dx = mouseX - ballX;
             float dy = mouseY - ballY;
             float distSq = dx * dx + dy * dy;
@@ -235,12 +218,11 @@ SDL_AppResult SDL_AppEvent(void* appstate, SDL_Event* event)
     }
     else if (event->type == SDL_EVENT_MOUSE_BUTTON_UP) {
         if (event->button.button == SDL_BUTTON_LEFT && isDragging) {
-            // Convert mouse coordinates to our coordinate system
+           
             float mouseX = event->button.x - WINDOW_WIDTH / 2.0f;
             float mouseY = -event->button.y + WINDOW_HEIGHT / 2.0f;
 
-            // Set the initial velocity based on the drag vector
-            // Increased velocity factor from 0.1 to 0.3 for faster launch
+         
             velocityX = (ballX - mouseX) * 0.3f;
             velocityY = (ballY - mouseY) * 0.3f;
 
@@ -250,7 +232,6 @@ SDL_AppResult SDL_AppEvent(void* appstate, SDL_Event* event)
     }
     else if (event->type == SDL_EVENT_MOUSE_MOTION) {
         if (isDragging) {
-            // Update drag position
             dragStartX = event->motion.x - WINDOW_WIDTH / 2.0f;
             dragStartY = -event->motion.y + WINDOW_HEIGHT / 2.0f;
         }
@@ -261,15 +242,13 @@ SDL_AppResult SDL_AppEvent(void* appstate, SDL_Event* event)
 
 SDL_AppResult SDL_AppIterate(void* appstate)
 {
-    // Get current time for frame rate independence
+   
     currentTime = SDL_GetTicks();
-    float deltaTime = (currentTime - previousTime) / 1000.0f; // Convert to seconds
+    float deltaTime = (currentTime - previousTime) / 1000.0f;
     previousTime = currentTime;
 
-    // Update physics
+ 
     updatePhysics(deltaTime);
-
-    // Render the scene
     glClear(GL_COLOR_BUFFER_BIT);
     glLoadIdentity();
 
@@ -280,8 +259,7 @@ SDL_AppResult SDL_AppIterate(void* appstate)
 
     SDL_GL_SwapWindow(window);
 
-    // Cap the frame rate
-    SDL_Delay(16); // Target ~60fps
+    SDL_Delay(16);
 
     return SDL_APP_CONTINUE;
 }

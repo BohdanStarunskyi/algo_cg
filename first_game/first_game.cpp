@@ -1,10 +1,9 @@
-#define SDL_MAIN_USE_CALLBACKS 1  // use the callbacks instead of main()
+#define SDL_MAIN_USE_CALLBACKS 1  
 #include <SDL3/SDL.h>
 #include <SDL3/SDL_main.h>
 #include <SDL3/SDL_opengl.h>
 #include <stdbool.h>
-#include <math.h>  // for sinf, cosf
-
+#include <math.h>  
 #define WINDOW_WIDTH 640
 #define WINDOW_HEIGHT 480
 #define BOARD_SIZE 300
@@ -29,7 +28,6 @@ int activeRow = 1;
 int activeCol = 1;
 SquareState winner = EMPTY;
 
-// Colors
 const float BACKGROUND_COLOR[3] = { 0.2f, 0.2f, 0.2f };
 const float GRID_COLOR[3] = { 1.0f, 1.0f, 1.0f };
 const float ACTIVE_COLOR[3] = { 0.3f, 0.7f, 0.3f };
@@ -37,7 +35,6 @@ const float REGULAR_COLOR[3] = { 0.5f, 0.5f, 0.5f };
 const float NOUGHT_COLOR[3] = { 0.0f, 0.0f, 1.0f };
 const float CROSS_COLOR[3] = { 1.0f, 0.0f, 0.0f };
 
-// Forward declarations
 void drawChar(float x, float y, char c, float size);
 void renderSimpleText(float x, float y, const char* text, float size);
 SquareState checkWinner();
@@ -45,7 +42,6 @@ SquareState checkWinner();
 void drawBoard() {
     glClear(GL_COLOR_BUFFER_BIT);
 
-    // Grid lines
     glColor3fv(GRID_COLOR);
     glLineWidth(3.0f);
     glBegin(GL_LINES);
@@ -185,7 +181,7 @@ SDL_AppResult SDL_AppEvent(void* appstate, SDL_Event* event) {
 SDL_AppResult SDL_AppIterate(void* appstate) {
     drawBoard();
     SDL_GL_SwapWindow(window);
-    SDL_Delay(16);  // ~60 FPS
+    SDL_Delay(16);     
     return SDL_APP_CONTINUE;
 }
 
@@ -205,7 +201,7 @@ SquareState checkWinner() {
 }
 
 void renderSimpleText(float x, float y, const char* text, float size) {
-    glColor3f(1.0f, 1.0f, 0.0f);  // Yellow
+    glColor3f(1.0f, 1.0f, 0.0f);      
     float spacing = size + 4;
     for (int i = 0; text[i] != '\0'; i++) {
         drawChar(x + i * spacing, y, text[i], size);

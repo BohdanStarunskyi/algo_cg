@@ -1,4 +1,4 @@
-#define SDL_MAIN_USE_CALLBACKS 1  /* use the callbacks instead of main() */
+#define SDL_MAIN_USE_CALLBACKS 1
 #include <SDL3/SDL.h>
 #include <SDL3/SDL_main.h>
 #include <SDL3/SDL_opengl.h>
@@ -16,35 +16,29 @@ static SDL_Window* window = NULL;
 SDL_GLContext glcontext = NULL;
 Uint64 previousTime, currentTime;
 
-// Ball properties
-float x = 0.0f;             // X position of the ball (center)
-float y = 0.0f;             // Y position of the ball (center)
-float angle = 45.0f;        // Initial angle in degrees
-float dx = 0.0f;            // X movement component
-float dy = 0.0f;            // Y movement component
-float speed = INITIAL_SPEED;// Movement speed
-bool ballMoving = false;    // Is the ball currently moving?
-bool spacePressed = false;  // Is space currently pressed?
+float x = 0.0f;          
+float y = 0.0f;            
+float angle = 45.0f;     
+float dx = 0.0f;          
+float dy = 0.0f;        
+float speed = INITIAL_SPEED;
+bool ballMoving = false;   
+bool spacePressed = false;
 
-// Table boundaries
 float tableLeft = -TABLE_WIDTH / 2.0f;
 float tableRight = TABLE_WIDTH / 2.0f;
 float tableTop = TABLE_HEIGHT / 2.0f;
 float tableBottom = -TABLE_HEIGHT / 2.0f;
 
-// Angle control
 bool leftPressed = false;
 bool rightPressed = false;
-float angleSpeed = 2.0f;    // Degrees per frame for angle adjustment
+float angleSpeed = 2.0f;   
 
 void drawBall() {
-    glColor3f(1.0f, 1.0f, 1.0f); // White ball
-
-    // Draw the ball as a circle
+    glColor3f(1.0f, 1.0f, 1.0f); 
     glBegin(GL_TRIANGLE_FAN);
-    glVertex2f(x, y); // Center of the circle
+    glVertex2f(x, y); 
 
-    // Draw the circle outline
     for (int i = 0; i <= 360; i += 10) {
         float angle_rad = i * M_PI / 180.0f;
         float px = x + BALL_RADIUS * cosf(angle_rad);
@@ -54,13 +48,13 @@ void drawBall() {
 
     glEnd();
 
-    // Draw direction indicator line when ball is not moving
+   
     if (!ballMoving) {
         float rad_angle = angle * M_PI / 180.0f;
         float dirX = x + BALL_RADIUS * 2 * cosf(rad_angle);
         float dirY = y + BALL_RADIUS * 2 * sinf(rad_angle);
 
-        glColor3f(1.0f, 0.0f, 0.0f); // Red line
+        glColor3f(1.0f, 0.0f, 0.0f);
         glBegin(GL_LINES);
         glVertex2f(x, y);
         glVertex2f(dirX, dirY);
@@ -69,8 +63,8 @@ void drawBall() {
 }
 
 void drawTable() {
-    // Draw the green table
-    glColor3f(0.0f, 0.5f, 0.0f); // Green
+   
+    glColor3f(0.0f, 0.5f, 0.0f);
     glBegin(GL_QUADS);
     glVertex2f(tableLeft, tableBottom);
     glVertex2f(tableRight, tableBottom);
@@ -78,8 +72,7 @@ void drawTable() {
     glVertex2f(tableLeft, tableTop);
     glEnd();
 
-    // Draw the brown border
-    glColor3f(0.5f, 0.25f, 0.0f); // Brown
+    glColor3f(0.5f, 0.25f, 0.0f); 
     glLineWidth(10.0f);
     glBegin(GL_LINE_LOOP);
     glVertex2f(tableLeft, tableBottom);
@@ -92,25 +85,17 @@ void drawTable() {
 
 void drawAngleIndicator() {
     char angleStr[32];
-
-    // Render text (simple placeholder since we don't have text rendering)
     glColor3f(1.0f, 1.0f, 1.0f);
     glRasterPos2f(-WINDOW_WIDTH / 2.0f + 20, -WINDOW_HEIGHT / 2.0f + 20);
-    // In a real implementation, you would use SDL_ttf or similar for text rendering
 }
 
 void drawInstructions() {
-    // In a real implementation, you would use SDL_ttf or similar for text rendering
-    // This is just a placeholder
     glColor3f(1.0f, 1.0f, 1.0f);
     glRasterPos2f(-WINDOW_WIDTH / 2.0f + 20, -WINDOW_HEIGHT / 2.0f + 40);
-    // Instructions would be:
-    // "LEFT/RIGHT: Change angle, SPACE: Launch ball, R: Reset"
 }
 
 void updateBall() {
     if (!ballMoving) {
-        // Update the angle based on input
         if (leftPressed) {
             angle -= angleSpeed;
             if (angle < 0) angle += 360.0f;
@@ -120,24 +105,20 @@ void updateBall() {
             if (angle >= 360.0f) angle -= 360.0f;
         }
 
-        // Launch the ball if space is pressed
         if (spacePressed) {
             float rad_angle = angle * M_PI / 180.0f;
             dx = speed * cosf(rad_angle);
             dy = speed * sinf(rad_angle);
             ballMoving = true;
-            spacePressed = false; // Reset space press
+            spacePressed = false;
         }
     }
     else {
-        // Update ball position
         x += dx;
         y += dy;
 
-        // Collision with horizontal walls
         if (y + BALL_RADIUS > tableTop || y - BALL_RADIUS < tableBottom) {
             dy = -dy;
-            // Adjust position to prevent getting stuck in the wall
             if (y + BALL_RADIUS > tableTop) {
                 y = tableTop - BALL_RADIUS;
             }
@@ -146,10 +127,9 @@ void updateBall() {
             }
         }
 
-        // Collision with vertical walls
         if (x + BALL_RADIUS > tableRight || x - BALL_RADIUS < tableLeft) {
             dx = -dx;
-            // Adjust position to prevent getting stuck in the wall
+        
             if (x + BALL_RADIUS > tableRight) {
                 x = tableRight - BALL_RADIUS;
             }
@@ -182,9 +162,8 @@ SDL_AppResult SDL_AppInit(void** appstate, int argc, char* argv[])
     }
 
     glcontext = SDL_GL_CreateContext(window);
-    glClearColor(0.0f, 0.0f, 0.0f, 1.0f);  // Black background
+    glClearColor(0.0f, 0.0f, 0.0f, 1.0f);  
 
-    // Set up orthographic projection
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
     glOrtho(-WINDOW_WIDTH / 2.0f, WINDOW_WIDTH / 2.0f,
@@ -192,7 +171,6 @@ SDL_AppResult SDL_AppInit(void** appstate, int argc, char* argv[])
         -1.0f, 1.0f);
     glMatrixMode(GL_MODELVIEW);
 
-    // Initialize ball at the center
     resetBall();
 
     previousTime = SDL_GetTicks();
@@ -205,7 +183,7 @@ SDL_AppResult SDL_AppEvent(void* appstate, SDL_Event* event)
         return SDL_APP_SUCCESS;
     }
 
-    // Handle key press events
+ 
     if (event->type == SDL_EVENT_KEY_DOWN) {
         switch (event->key.key) {
         case SDLK_SPACE:
@@ -221,10 +199,10 @@ SDL_AppResult SDL_AppEvent(void* appstate, SDL_Event* event)
             resetBall();
             break;
         case SDLK_ESCAPE:
-            return SDL_APP_SUCCESS; // Exit on ESC
+            return SDL_APP_SUCCESS;
         }
     }
-    // Handle key release events
+
     else if (event->type == SDL_EVENT_KEY_UP) {
         switch (event->key.key) {
         case SDLK_SPACE:
@@ -244,9 +222,8 @@ SDL_AppResult SDL_AppEvent(void* appstate, SDL_Event* event)
 
 SDL_AppResult SDL_AppIterate(void* appstate)
 {
-    // Get current time for frame rate independence
     currentTime = SDL_GetTicks();
-    float deltaTime = (currentTime - previousTime) / 1000.0f; // Convert to seconds
+    float deltaTime = (currentTime - previousTime) / 1000.0f; 
     previousTime = currentTime;
 
     updateBall();
@@ -261,8 +238,7 @@ SDL_AppResult SDL_AppIterate(void* appstate)
 
     SDL_GL_SwapWindow(window);
 
-    // Cap the frame rate
-    SDL_Delay(16); // Target ~60fps
+    SDL_Delay(16);
 
     return SDL_APP_CONTINUE;
 }
