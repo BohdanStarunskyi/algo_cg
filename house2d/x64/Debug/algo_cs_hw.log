@@ -1,3 +1,5 @@
 ﻿C:\Program Files\Microsoft Visual Studio\2022\Community\MSBuild\Microsoft\VC\v170\Microsoft.CppBuild.targets(534,5): warning MSB8028: The intermediate directory (x64\Debug\) contains files shared from another project (algo_cs_hw.vcxproj).  This can lead to incorrect clean and rebuild behavior.
   house2d.cpp
   algo_cs_hw.vcxproj -> C:\Users\Bohdan\Desktop\algo_cg\x64\Debug\house2d.exe
+  'pwsh.exe' is not recognized as an internal or external command,
+  operable program or batch file.

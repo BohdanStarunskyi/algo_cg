@@ -5,11 +5,9 @@
 
 #define WINDOW_WIDTH 640
 #define WINDOW_HEIGHT 480
-#define STEP_RATE_IN_MILLISECONDS  25
 
 static SDL_Window* window = NULL;
 SDL_GLContext glcontext = NULL;
-Uint64 previousTime, currentTime;
 float angle_of_rotation = 0.0f;
 
 void setPerspective(float fovY, float aspect, float zNear, float zFar) {
@@ -43,7 +41,6 @@ SDL_AppResult SDL_AppInit(void** appstate, int argc, char* argv[])
     glMatrixMode(GL_MODELVIEW);
     glEnable(GL_DEPTH_TEST);
 
-    previousTime = SDL_GetTicks();
     return SDL_APP_CONTINUE;
 }
 
@@ -75,44 +72,6 @@ SDL_AppResult SDL_AppIterate(void* appstate)
     glVertex3f(-2.5f, 1.0f, z);   
     glVertex3f(0.0f, 3.0f, z);    
     glVertex3f(2.5f, 1.0f, z);  
-    glEnd();
-
-    glBegin(GL_QUADS);
-    glColor3f(0.4f, 0.2f, 0.1f); 
-    glVertex3f(-0.6f, -2.0f, z); 
-    glVertex3f(0.6f, -2.0f, z);  
-    glVertex3f(0.6f, 0.0f, z);    
-    glVertex3f(-0.6f, 0.0f, z); 
-    glEnd();
-
-    glBegin(GL_QUADS);
-    glColor3f(0.7f, 0.9f, 1.0f);  
-    glVertex3f(-1.5f, -0.5f, z);  
-    glVertex3f(-0.7f, -0.5f, z);  
-    glVertex3f(-0.7f, 0.5f, z);   
-    glVertex3f(-1.5f, 0.5f, z);
-    glEnd();
-
-    glBegin(GL_QUADS);
-    glColor3f(0.7f, 0.9f, 1.0f); 
-    glVertex3f(0.7f, -0.5f, z); 
-    glVertex3f(1.5f, -0.5f, z); 
-    glVertex3f(1.5f, 0.5f, z); 
-    glVertex3f(0.7f, 0.5f, z); 
-    glEnd();
-
-    glBegin(GL_LINES);
-    glColor3f(0.0f, 0.0f, 0.0f); 
-
-    glVertex3f(-1.5f, 0.0f, z);
-    glVertex3f(-0.7f, 0.0f, z);
-    glVertex3f(-1.1f, -0.5f, z);
-    glVertex3f(-1.1f, 0.5f, z);
-
-    glVertex3f(0.7f, 0.0f, z);
-    glVertex3f(1.5f, 0.0f, z);
-    glVertex3f(1.1f, -0.5f, z);
-    glVertex3f(1.1f, 0.5f, z);
     glEnd();
 
     SDL_GL_SwapWindow(window);

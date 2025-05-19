@@ -1,4 +1,4 @@
-#define SDL_MAIN_USE_CALLBACKS 1  /* use the callbacks instead of main() */
+#define SDL_MAIN_USE_CALLBACKS 1
 #include <SDL3/SDL.h>
 #include <SDL3/SDL_main.h>
 #include <SDL3/SDL_opengl.h>
@@ -81,33 +81,38 @@ SDL_AppResult SDL_AppIterate(void* appstate)
 
     float wallColor[3] = { 0.8f, 0.6f, 0.2f };  
 
+    //4 walls
     glBegin(GL_QUADS);
-
     glColor3fv(wallColor);
+
+    //front
     glVertex3f(-halfWidth, 0.0f, halfDepth);       
     glVertex3f(halfWidth, 0.0f, halfDepth);        
     glVertex3f(halfWidth, height, halfDepth);      
     glVertex3f(-halfWidth, height, halfDepth);    
 
+    //back
     glColor3fv(wallColor);
     glVertex3f(-halfWidth, 0.0f, -halfDepth);      
     glVertex3f(halfWidth, 0.0f, -halfDepth);       
     glVertex3f(halfWidth, height, -halfDepth);     
     glVertex3f(-halfWidth, height, -halfDepth);   
 
+    //left
     glColor3fv(wallColor);
     glVertex3f(-halfWidth, 0.0f, halfDepth);       
     glVertex3f(-halfWidth, 0.0f, -halfDepth);     
     glVertex3f(-halfWidth, height, -halfDepth);    
     glVertex3f(-halfWidth, height, halfDepth);     
 
+    //right
     glColor3fv(wallColor);
     glVertex3f(halfWidth, 0.0f, halfDepth);        
     glVertex3f(halfWidth, 0.0f, -halfDepth);       
     glVertex3f(halfWidth, height, -halfDepth);    
     glVertex3f(halfWidth, height, halfDepth);  
 
-   
+	//floor
     glColor3f(0.5f, 0.5f, 0.5f);  
     glVertex3f(-halfWidth, 0.0f, halfDepth);       
     glVertex3f(halfWidth, 0.0f, halfDepth);       
@@ -120,92 +125,32 @@ SDL_AppResult SDL_AppIterate(void* appstate)
     float roofPeak = height + roofHeight;
     float roofColor[3] = { 0.9f, 0.2f, 0.1f }; 
 
+    //roof
     glBegin(GL_TRIANGLES);
-
-  
     glColor3fv(roofColor);
+
+    //front roof
     glVertex3f(-halfWidth, height, halfDepth);     
     glVertex3f(0.0f, roofPeak, 0.0f);              
     glVertex3f(halfWidth, height, halfDepth);   
 
- 
+	//back roof
     glColor3fv(roofColor);
     glVertex3f(-halfWidth, height, -halfDepth);    
     glVertex3f(0.0f, roofPeak, 0.0f);             
     glVertex3f(halfWidth, height, -halfDepth);    
 
+	//left roof
     glColor3fv(roofColor);
     glVertex3f(-halfWidth, height, halfDepth);     
     glVertex3f(0.0f, roofPeak, 0.0f);            
     glVertex3f(-halfWidth, height, -halfDepth); 
 
+	//right roof
     glColor3fv(roofColor);
     glVertex3f(halfWidth, height, halfDepth);      
     glVertex3f(0.0f, roofPeak, 0.0f);             
     glVertex3f(halfWidth, height, -halfDepth);   
-
-    glEnd();
-
-    glBegin(GL_QUADS);
-    glColor3f(0.4f, 0.2f, 0.1f);  
-    float doorWidth = 1.2f;
-    float doorHeight = 2.0f;
-    glVertex3f(-doorWidth / 2, 0.0f, halfDepth + 0.01f);        
-    glVertex3f(doorWidth / 2, 0.0f, halfDepth + 0.01f);         
-    glVertex3f(doorWidth / 2, doorHeight, halfDepth + 0.01f);  
-    glVertex3f(-doorWidth / 2, doorHeight, halfDepth + 0.01f); 
-    glEnd();
-
-    glBegin(GL_QUADS);
-    glColor3f(0.7f, 0.9f, 1.0f); 
-    float windowSize = 0.8f;
-    float windowHeight = 1.8f;
-
-    glVertex3f(-halfWidth + 1.0f, windowHeight, halfDepth + 0.01f);                  
-    glVertex3f(-halfWidth + 1.0f + windowSize, windowHeight, halfDepth + 0.01f); 
-    glVertex3f(-halfWidth + 1.0f + windowSize, windowHeight + windowSize, halfDepth + 0.01f);  
-    glVertex3f(-halfWidth + 1.0f, windowHeight + windowSize, halfDepth + 0.01f);    
-
-    glVertex3f(halfWidth - 1.0f - windowSize, windowHeight, halfDepth + 0.01f);      
-    glVertex3f(halfWidth - 1.0f, windowHeight, halfDepth + 0.01f);                  
-    glVertex3f(halfWidth - 1.0f, windowHeight + windowSize, halfDepth + 0.01f);      
-    glVertex3f(halfWidth - 1.0f - windowSize, windowHeight + windowSize, halfDepth + 0.01f);
-
-
-    glVertex3f(-halfWidth - 0.01f, windowHeight, 0.0f);                  
-    glVertex3f(-halfWidth - 0.01f, windowHeight, -windowSize);          
-    glVertex3f(-halfWidth - 0.01f, windowHeight + windowSize, -windowSize);
-    glVertex3f(-halfWidth - 0.01f, windowHeight + windowSize, 0.0f);    
-
-    glVertex3f(halfWidth + 0.01f, windowHeight, 0.0f);                   
-    glVertex3f(halfWidth + 0.01f, windowHeight, -windowSize);            
-    glVertex3f(halfWidth + 0.01f, windowHeight + windowSize, -windowSize);  
-    glVertex3f(halfWidth + 0.01f, windowHeight + windowSize, 0.0f);     
-    glEnd();
-
-  
-    glBegin(GL_LINES);
-    glColor3f(0.0f, 0.0f, 0.0f); 
-
-    glVertex3f(-halfWidth + 1.0f + windowSize / 2, windowHeight, halfDepth + 0.02f);
-    glVertex3f(-halfWidth + 1.0f + windowSize / 2, windowHeight + windowSize, halfDepth + 0.02f);
-    glVertex3f(-halfWidth + 1.0f, windowHeight + windowSize / 2, halfDepth + 0.02f);
-    glVertex3f(-halfWidth + 1.0f + windowSize, windowHeight + windowSize / 2, halfDepth + 0.02f);
-
-    glVertex3f(halfWidth - 1.0f - windowSize / 2, windowHeight, halfDepth + 0.02f);
-    glVertex3f(halfWidth - 1.0f - windowSize / 2, windowHeight + windowSize, halfDepth + 0.02f);
-    glVertex3f(halfWidth - 1.0f - windowSize, windowHeight + windowSize / 2, halfDepth + 0.02f);
-    glVertex3f(halfWidth - 1.0f, windowHeight + windowSize / 2, halfDepth + 0.02f);
-
-    glVertex3f(-halfWidth - 0.02f, windowHeight + windowSize / 2, 0.0f);
-    glVertex3f(-halfWidth - 0.02f, windowHeight + windowSize / 2, -windowSize);
-    glVertex3f(-halfWidth - 0.02f, windowHeight, -windowSize / 2);
-    glVertex3f(-halfWidth - 0.02f, windowHeight + windowSize, -windowSize / 2);
-
-    glVertex3f(halfWidth + 0.02f, windowHeight + windowSize / 2, 0.0f);
-    glVertex3f(halfWidth + 0.02f, windowHeight + windowSize / 2, -windowSize);
-    glVertex3f(halfWidth + 0.02f, windowHeight, -windowSize / 2);
-    glVertex3f(halfWidth + 0.02f, windowHeight + windowSize, -windowSize / 2);
     glEnd();
 
     SDL_GL_SwapWindow(window);

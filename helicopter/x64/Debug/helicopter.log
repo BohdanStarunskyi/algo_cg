@@ -1,2 +1,6 @@
 ﻿  helicopter.cpp
+C:\Users\Bohdan\Desktop\algo_cg\helicopter\helicopter.cpp(99,17): warning C4804: '<': unsafe use of type 'bool' in operation
+C:\Users\Bohdan\Desktop\algo_cg\helicopter\helicopter.cpp(109,47): warning C4305: 'argument': truncation from 'double' to 'float'
   helicopter.vcxproj -> C:\Users\Bohdan\Desktop\algo_cg\x64\Debug\helicopter.exe
+  'pwsh.exe' is not recognized as an internal or external command,
+  operable program or batch file.
