@@ -10,12 +10,14 @@
 
 static SDL_Window* window = NULL;
 SDL_GLContext glcontext = NULL;
+
 Uint64 previousTime, currentTime;
 
 float posx = 0.0f;
 float posz = 0.0f;
 float angle = 0.0f;
-float speed = 0.1f;
+
+float speed = 0.1f;          
 float rotation_speed = 0.05f;
 
 bool keyUp = false;
@@ -36,41 +38,47 @@ void drawCar() {
 
     glBegin(GL_QUADS);
 
+    //top
     glColor3f(1.0f, 0.0f, 0.0f);
-    glVertex3f(-0.5f, 0.5f, -1.0f);
-    glVertex3f(-0.5f, 0.5f, 0.5f);
-    glVertex3f(0.5f, 0.5f, 0.5f);
-    glVertex3f(0.5f, 0.5f, -1.0f);
+    glVertex3f(-1.0f, 0.5f, -0.5f);
+    glVertex3f(-1.0f, 0.5f, 0.5f);
+    glVertex3f(1.0f, 0.5f, 0.5f);
+    glVertex3f(1.0f, 0.5f, -0.5f);
 
+    //bottom
     glColor3f(0.5f, 0.0f, 0.0f);
-    glVertex3f(-0.5f, -0.5f, -1.0f);
-    glVertex3f(0.5f, -0.5f, -1.0f);
-    glVertex3f(0.5f, -0.5f, 0.5f);
-    glVertex3f(-0.5f, -0.5f, 0.5f);
+    glVertex3f(-1.0f, -0.5f, -0.5f);
+    glVertex3f(1.0f, -0.5f, -0.5f);
+    glVertex3f(1.0f, -0.5f, 0.5f);
+    glVertex3f(-1.0f, -0.5f, 0.5f);
 
+    //front
     glColor3f(0.0f, 0.0f, 1.0f);
-    glVertex3f(-0.5f, -0.5f, 0.5f);
-    glVertex3f(0.5f, -0.5f, 0.5f);
-    glVertex3f(0.5f, 0.5f, 0.5f);
-    glVertex3f(-0.5f, 0.5f, 0.5f);
+    glVertex3f(1.0f, -0.5f, 0.5f);
+    glVertex3f(-1.0f, -0.5f, 0.5f);
+    glVertex3f(-1.0f, 0.5f, 0.5f);
+    glVertex3f(1.0f, 0.5f, 0.5f);
 
+    //back
     glColor3f(0.0f, 0.0f, 0.5f);
-    glVertex3f(-0.5f, -0.5f, -1.0f);
-    glVertex3f(-0.5f, 0.5f, -1.0f);
-    glVertex3f(0.5f, 0.5f, -1.0f);
-    glVertex3f(0.5f, -0.5f, -1.0f);
+    glVertex3f(-1.0f, -0.5f, -0.5f);
+    glVertex3f(1.0f, -0.5f, -0.5f);
+    glVertex3f(1.0f, 0.5f, -0.5f);
+    glVertex3f(-1.0f, 0.5f, -0.5f);
 
+    //left
     glColor3f(0.0f, 1.0f, 0.0f);
-    glVertex3f(-0.5f, -0.5f, -1.0f);
-    glVertex3f(-0.5f, -0.5f, 0.5f);
-    glVertex3f(-0.5f, 0.5f, 0.5f);
-    glVertex3f(-0.5f, 0.5f, -1.0f);
+    glVertex3f(-1.0f, -0.5f, -0.5f);
+    glVertex3f(-1.0f, -0.5f, 0.5f);
+    glVertex3f(-1.0f, 0.5f, 0.5f);
+    glVertex3f(-1.0f, 0.5f, -0.5f);
 
+    //right
     glColor3f(0.0f, 0.5f, 0.0f);
-    glVertex3f(0.5f, -0.5f, -1.0f);
-    glVertex3f(0.5f, 0.5f, -1.0f);
-    glVertex3f(0.5f, 0.5f, 0.5f);
-    glVertex3f(0.5f, -0.5f, 0.5f);
+    glVertex3f(1.0f, -0.5f, -0.5f);
+    glVertex3f(1.0f, 0.5f, -0.5f);
+    glVertex3f(1.0f, 0.5f, 0.5f);
+    glVertex3f(1.0f, -0.5f, 0.5f);
 
     glEnd();
     glPopMatrix();
@@ -79,14 +87,19 @@ void drawCar() {
 void drawGround() {
     glBegin(GL_LINES);
     glColor3f(0.5f, 0.5f, 0.5f);
+
+    //x lines
     for (int i = -10; i <= 10; i++) {
         glVertex3f(-10.0f, -0.5f, (GLfloat)i);
         glVertex3f(10.0f, -0.5f, (GLfloat)i);
     }
+
+    //z lines
     for (int i = -10; i <= 10; i++) {
         glVertex3f((GLfloat)i, -0.5f, -10.0f);
         glVertex3f((GLfloat)i, -0.5f, 10.0f);
     }
+
     glEnd();
 }
 
@@ -100,11 +113,11 @@ void processInput() {
 
     if (keyLeft) {
         angle += turnSpeed;
-        if (angle >= 2.0f * (float)M_PI) angle -= 2.0f * (float)M_PI;
+        if (angle >= 2.0f * M_PI) angle -= 2.0f * M_PI;
     }
     if (keyRight) {
         angle -= turnSpeed;
-        if (angle < 0.0f) angle += 2.0f * (float)M_PI;
+        if (angle < 0.0f) angle += 2.0f * M_PI;
     }
 
     float dx = moveSpeed * cosf(angle);
@@ -149,9 +162,7 @@ SDL_AppResult SDL_AppInit(void** appstate, int argc, char* argv[]) {
 }
 
 SDL_AppResult SDL_AppEvent(void* appstate, SDL_Event* event) {
-    if (event->type == SDL_EVENT_QUIT) {
-        return SDL_APP_SUCCESS;
-    }
+    if (event->type == SDL_EVENT_QUIT) return SDL_APP_SUCCESS;
 
     if (event->type == SDL_EVENT_KEY_DOWN) {
         switch (event->key.key) {
@@ -159,7 +170,6 @@ SDL_AppResult SDL_AppEvent(void* appstate, SDL_Event* event) {
         case SDLK_DOWN: keyDown = true; break;
         case SDLK_LEFT: keyLeft = true; break;
         case SDLK_RIGHT: keyRight = true; break;
-        case SDLK_ESCAPE: return SDL_APP_SUCCESS;
         }
     }
     else if (event->type == SDL_EVENT_KEY_UP) {
@@ -179,6 +189,8 @@ SDL_AppResult SDL_AppIterate(void* appstate) {
 
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glLoadIdentity();
+    glRotatef(25.0f, 1.0f, 0.0f, 0.0f);
+    glTranslatef(0.0f, -3.0f, -10.0f);
     drawGround();
     drawCar();
 

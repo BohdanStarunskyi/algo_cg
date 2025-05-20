@@ -1,4 +1,8 @@
 ﻿  car_movement.cpp
-C:\Users\Bohdan\Desktop\algo_cg\car_movement\car_movement.cpp(27,43): warning C4244: 'argument': conversion from 'double' to 'float', possible loss of data
-C:\Users\Bohdan\Desktop\algo_cg\car_movement\car_movement.cpp(124,17): warning C4804: '<': unsafe use of type 'bool' in operation
+C:\Users\Bohdan\Desktop\algo_cg\car_movement\car_movement.cpp(29,43): warning C4244: 'argument': conversion from 'double' to 'float', possible loss of data
+C:\Users\Bohdan\Desktop\algo_cg\car_movement\car_movement.cpp(116,49): warning C4305: '-=': truncation from 'double' to 'float'
+C:\Users\Bohdan\Desktop\algo_cg\car_movement\car_movement.cpp(120,41): warning C4305: '+=': truncation from 'double' to 'float'
+C:\Users\Bohdan\Desktop\algo_cg\car_movement\car_movement.cpp(137,17): warning C4804: '<': unsafe use of type 'bool' in operation
   car_movement.vcxproj -> C:\Users\Bohdan\Desktop\algo_cg\x64\Debug\car_movement.exe
+  'pwsh.exe' is not recognized as an internal or external command,
+  operable program or batch file.
