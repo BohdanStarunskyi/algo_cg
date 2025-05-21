@@ -8,7 +8,6 @@
 
 static SDL_Window* window = NULL;
 SDL_GLContext glcontext = NULL;
-float angle_of_rotation = 0.0f;
 
 void setPerspective(float fovY, float aspect, float zNear, float zFar) {
     float ymax = 1;
