@@ -53,7 +53,7 @@ void updatePhysics(float dt) {
 
     if (ballY - BALL_RADIUS < GROUND_Y) {
         ballY = GROUND_Y + BALL_RADIUS;
-        velocityY = 0.0f;
+        velocityY *= -0.7f;
     }
 }
 
