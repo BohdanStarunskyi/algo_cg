@@ -9,12 +9,6 @@
 static SDL_Window* window = NULL;
 SDL_GLContext glcontext = NULL;
 
-void setPerspective(float fovY, float aspect, float zNear, float zFar) {
-    float ymax = 1;
-    float xmax = ymax * aspect;
-    glFrustum(-xmax, xmax, -ymax, ymax, zNear, zFar);
-}
-
 SDL_AppResult SDL_AppInit(void** appstate, int argc, char* argv[])
 {
     if (!SDL_Init(SDL_INIT_VIDEO)) {
@@ -35,10 +29,9 @@ SDL_AppResult SDL_AppInit(void** appstate, int argc, char* argv[])
 
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
-    setPerspective(45.0f, (float)WINDOW_WIDTH / (float)WINDOW_HEIGHT, 1.0f, 500.0f); 
-
+    glOrtho(0, WINDOW_WIDTH, 0, WINDOW_HEIGHT, -1, 1);
     glMatrixMode(GL_MODELVIEW);
-    glEnable(GL_DEPTH_TEST);
+    glLoadIdentity();
 
     return SDL_APP_CONTINUE;
 }
@@ -56,23 +49,20 @@ SDL_AppResult SDL_AppIterate(void* appstate)
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glLoadIdentity();
 
-    float z = -15.0f;
-
     glBegin(GL_QUADS);
-    glColor3f(0.8f, 0.6f, 0.2f);  
-    glVertex3f(-2.0f, -2.0f, z);  
-    glVertex3f(2.0f, -2.0f, z);  
-    glVertex3f(2.0f, 1.0f, z);    
-    glVertex3f(-2.0f, 1.0f, z); 
+    glColor3f(0.8f, 0.6f, 0.2f);
+    glVertex2f(100.0f, 100.0f);
+    glVertex2f(200.0f, 100.0f);
+    glVertex2f(200.0f, 200.0f);
+    glVertex2f(100.0f, 200.0f);
     glEnd();
 
     glBegin(GL_TRIANGLES);
-    glColor3f(0.9f, 0.2f, 0.1f); 
-    glVertex3f(-2.5f, 1.0f, z);   
-    glVertex3f(0.0f, 3.0f, z);    
-    glVertex3f(2.5f, 1.0f, z);  
+    glColor3f(0.8f, 0.2f, 0.2f);
+    glVertex2d(100.0f, 200.0f);
+    glVertex2d(150.0f, 250.0f);
+    glVertex2d(200.0f, 200.0f);
     glEnd();
-
     SDL_GL_SwapWindow(window);
     return SDL_APP_CONTINUE;
 }
