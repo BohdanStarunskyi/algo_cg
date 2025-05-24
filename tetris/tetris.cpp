@@ -1,126 +1,119 @@
 #define SDL_MAIN_USE_CALLBACKS 1
-
 #include <SDL3/SDL.h>
 #include <SDL3/SDL_main.h>
 #include <SDL3/SDL_opengl.h>
-#include <GL/glu.h>
 #include <vector>
-#include <iostream>
+#include <algorithm>
 
-#define WINDOW_WIDTH 1280
-#define WINDOW_HEIGHT 960
-#define STEP_RATE_IN_MILLISECONDS 25
+#define WINDOW_WIDTH 800
+#define WINDOW_HEIGHT 600
 
 static SDL_Window* window = nullptr;
 SDL_GLContext glcontext = nullptr;
 
+void setPerspective(float fovY, float aspect, float zNear, float zFar) {
+    float ymax = 1;
+    float xmax = ymax * aspect;
+    glFrustum(-xmax, xmax, -ymax, ymax, zNear, zFar);
+}
+
 class Brick {
 public:
-    float center_x, center_y;
-    float dim;
-    float r, g, b;
-    float speed;
-    bool falling_down;
-    int posx;
+    float x = 0.0f;     
+    float y = 3.0f; 
+    float size = 0.2f;   //width/height
+    int col = 0;//column index: -1=left, 0=center, 1=right
+    bool falling = true;
 
-    Brick() {
-        center_x = 0.0f;
-        center_y = 3.0f;
-        dim = 0.2f;
-        r = 1.0f; g = 0.0f; b = 0.0f;
-        speed = 0.02f;
-        falling_down = true;
-        posx = 0;
+    void update() {
+        if (falling) y -= 0.02f;
     }
 
-    void move_down() {
-        if (falling_down) center_y -= speed;
-    }
-
-    void move_right() {
-        if (falling_down && posx < 1) {
-            center_x += dim;
-            posx++;
+    void moveLeft() {
+        if (falling && col > -1) {
+            col--;
+            x -= size;
         }
     }
 
-    void move_left() {
-        if (falling_down && posx > -1) {
-            center_x -= dim;
-            posx--;
+    void moveRight() {
+        if (falling && col < 1) {
+            col++;
+            x += size;
         }
     }
 
-    void draw() {
+    void draw() const {
+        //square
         glPushMatrix();
-        glTranslatef(center_x, center_y, 0.0f);
-        glScalef(0.95f * dim, 0.95f * dim, 1.0f);
-        glColor3f(r, g, b);
+        glTranslatef(x, y, 0.0f);
+        glScalef(size * 0.9f, size * 0.9f, 1.0f);
+        glColor3f(1.0f, 0.0f, 0.0f);
         glBegin(GL_QUADS);
-        glVertex3f(0.5f, 0.5f, 0.0f);
-        glVertex3f(-0.5f, 0.5f, 0.0f);
-        glVertex3f(-0.5f, -0.5f, 0.0f);
-        glVertex3f(0.5f, -0.5f, 0.0f);
+        glVertex2f(-0.5f, -0.5f);
+        glVertex2f(0.5f, -0.5f);
+        glVertex2f(0.5f, 0.5f);
+        glVertex2f(-0.5f, 0.5f);
         glEnd();
         glPopMatrix();
     }
 };
 
-std::vector<Brick> elements = { Brick() };
+//all bricks in game
+std::vector<Brick> bricks = { Brick() };
 
-void clear_full_rows() {
-    int counts[3] = { 0, 0, 0 };
-    for (auto& el : elements) {
-        if (!el.falling_down) {
-            counts[el.posx + 1]++;
+void clearFullRows() {
+    std::vector<float> rowYs;
+
+    for (const auto& b : bricks) {
+        if (!b.falling) {
+            rowYs.push_back(b.y);
         }
     }
+    for (float yCheck : rowYs) {
+        int colFilled[3] = { 0 };
 
-    for (int i = 0; i < 3; i++) {
-        if (counts[i] >= 3) {
-            int target_posx = i - 1;
-            elements.erase(std::remove_if(elements.begin(), elements.end(), [target_posx](Brick& b) {
-                return !b.falling_down && b.posx == target_posx;
-                }), elements.end());
+        for (const auto& b : bricks) {
+            if (!b.falling && fabs(b.y - yCheck) < 0.01f) {
+                colFilled[b.col + 1]++;
+            }
+        }
+
+        if (colFilled[0] && colFilled[1] && colFilled[2]) {
+            bricks.erase(std::remove_if(bricks.begin(), bricks.end(),
+                [=](const Brick& b) {
+                    return !b.falling && fabs(b.y - yCheck) < 0.01f;
+                }), bricks.end());
         }
     }
 }
 
 SDL_AppResult SDL_AppInit(void** appstate, int argc, char* argv[]) {
-    if (SDL_Init(SDL_INIT_VIDEO) < 0) {
-        SDL_Log("SDL init failed: %s", SDL_GetError());
-        return SDL_APP_FAILURE;
-    }
+    if (SDL_Init(SDL_INIT_VIDEO) < 0) return SDL_APP_FAILURE;
 
-    window = SDL_CreateWindow("Tetris-Like Game", WINDOW_WIDTH, WINDOW_HEIGHT, SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE);
-    if (!window) {
-        SDL_Log("Window creation failed: %s", SDL_GetError());
-        return SDL_APP_FAILURE;
-    }
+    window = SDL_CreateWindow("Mini Tetris", WINDOW_WIDTH, WINDOW_HEIGHT, SDL_WINDOW_OPENGL);
+    if (!window) return SDL_APP_FAILURE;
 
     glcontext = SDL_GL_CreateContext(window);
-    SDL_SetAppMetadata("Tetris Game", "1.0", "openai.com");
-
     glClearColor(0.9f, 0.9f, 1.0f, 1.0f);
+
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
+    setPerspective(45, (double)WINDOW_WIDTH / WINDOW_HEIGHT, 1, 10);
     glMatrixMode(GL_MODELVIEW);
+    glLoadIdentity();
     glEnable(GL_DEPTH_TEST);
 
     return SDL_APP_CONTINUE;
 }
 
 SDL_AppResult SDL_AppEvent(void* appstate, SDL_Event* event) {
-    if (event->type == SDL_EVENT_QUIT) {
-        return SDL_APP_SUCCESS;
-    }
+    if (event->type == SDL_EVENT_QUIT) return SDL_APP_SUCCESS;
+
     if (event->type == SDL_EVENT_KEY_DOWN) {
-        if (event->key.key == SDLK_RIGHT) {
-            elements.back().move_right();
-        }
-        if (event->key.key == SDLK_LEFT) {
-            elements.back().move_left();
-        }
+        Brick& b = bricks.back();
+        if (event->key.key == SDLK_LEFT) b.moveLeft();
+        if (event->key.key == SDLK_RIGHT) b.moveRight();
     }
     return SDL_APP_CONTINUE;
 }
@@ -129,53 +122,49 @@ SDL_AppResult SDL_AppIterate(void* appstate) {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glLoadIdentity();
     glTranslatef(0.0f, 0.0f, -5.0f);
-    glScalef(3.0f, 1.0f, 1.0f);
+    glScalef(3.0f, 1.0f, 1.0f); 
 
-    // Draw border
-    glPushMatrix();
-    glScalef(0.2f, 0.2f, 1.0f);
-    glColor3f(0.0, 0.0, 0.0);
-    glLineWidth(2.0);
-    glBegin(GL_LINES);
-    glVertex3f(-1.5f, 10.0f, 0.0f);
-    glVertex3f(-1.5f, -9.5f, 0.0f);
-    glVertex3f(1.5f, 10.0f, 0.0f);
-    glVertex3f(1.5f, -9.5f, 0.0f);
-    glVertex3f(-1.5f, -9.5f, 0.0f);
-    glVertex3f(1.5f, -9.5f, 0.0f);
+    glBegin(GL_LINE_LOOP);
+    glColor3f(0, 0, 0);
+    glVertex2f(-1.5f, -2.0f);
+    glVertex2f(-1.5f, 3.0f);
+    glVertex2f(1.5f, 3.0f);
+    glVertex2f(1.5f, -2.0f);
     glEnd();
-    glPopMatrix();
 
-    for (auto& el : elements) {
-        el.draw();
-        el.move_down();
-        if (el.center_y - el.dim < -2.0f)
-            el.falling_down = false;
-    }
+    Brick& active = bricks.back();
+    active.update();
 
-    Brick& falling = elements.back();
-    for (int i = 0; i < elements.size() - 1; i++) {
-        Brick& b = elements[i];
-        if (falling.falling_down &&
-            falling.posx == b.posx &&
-            b.center_y < falling.center_y &&
-            falling.center_y - b.center_y < falling.dim) {
-            falling.center_y = b.center_y + falling.dim;
-            falling.falling_down = false;
+    if (active.y - active.size < -2.0f)
+        active.falling = false;
+
+    //check for collision with fixed bricks
+    for (const auto& b : bricks) {
+        if (&b == &active || b.falling) continue;
+
+        if (active.falling && active.col == b.col &&
+            b.y < active.y && (active.y - b.y) < active.size) {
+            active.y = b.y + active.size;
+            active.falling = false;
         }
     }
 
-    if (!falling.falling_down) {
-        clear_full_rows();
-        elements.push_back(Brick());
+    //spawn next
+    if (!active.falling) {
+        clearFullRows();
+        bricks.push_back(Brick());
     }
 
+    for (auto& b : bricks)
+        b.draw();
+
     SDL_GL_SwapWindow(window);
+    SDL_Delay(16); // ~60 FPS
     return SDL_APP_CONTINUE;
 }
 
 void SDL_AppQuit(void* appstate, SDL_AppResult result) {
-    SDL_DestroyWindow(window);
     SDL_GL_DestroyContext(glcontext);
+    SDL_DestroyWindow(window);
     SDL_Quit();
 }
