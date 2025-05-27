@@ -2,6 +2,8 @@
 #include <SDL3/SDL.h>
 #include <SDL3/SDL_main.h>
 #include <SDL3/SDL_opengl.h>
+#include <math.h>
+#include <corecrt_math_defines.h>
 
 #define WINDOW_WIDTH 640
 #define WINDOW_HEIGHT 480
@@ -26,7 +28,7 @@ GLuint textureGrass = 0;
 GLuint textureWood = 0;
 
 void setPerspective(float fovY, float aspect, float zNear, float zFar) {
-    float ymax = tanf((fovY * 3.14159265f / 180.0f) * 0.5f) * zNear;
+    float ymax = tanf((fovY * M_PI / 180.0f) * 0.5f) * zNear;
     float xmax = ymax * aspect;
     glFrustum(-xmax, xmax, -ymax, ymax, zNear, zFar);
 }
@@ -166,13 +168,13 @@ SDL_AppResult SDL_AppEvent(void* appstate, SDL_Event* event)
                 if (rotationAngle < 0.0f) rotationAngle += 360.0f;
                 break;
             case SDLK_UP: {
-                float rad = rotationAngle * 3.14159265f / 180.0f;
+                float rad = rotationAngle * M_PI / 180.0f;
                 posX += sinf(rad) * moveSpeed;
                 posZ += cosf(rad) * moveSpeed;
                 break;
             }
             case SDLK_DOWN: {
-                float rad = rotationAngle * 3.14159265f / 180.0f;
+                float rad = rotationAngle * M_PI / 180.0f;
                 posX -= sinf(rad) * moveSpeed;
                 posZ -= cosf(rad) * moveSpeed;
                 break;
