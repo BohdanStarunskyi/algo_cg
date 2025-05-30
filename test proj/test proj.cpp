@@ -4,10 +4,9 @@
 #include <SDL3/SDL_opengl.h>
 #include <math.h>
 #include <stdbool.h>
-#include <math.h>
 #include <stdlib.h>
-
 #include <corecrt_math_defines.h>
+#include <stdio.h>
 
 #define WINDOW_WIDTH 800
 #define WINDOW_HEIGHT 600
@@ -22,6 +21,8 @@ float velocityY = 0.0f;
 const float GRAVITY = -900.0f;
 const float FLAP_STRENGTH = 300.0f;
 const float GROUND_Y = -WINDOW_HEIGHT / 2.0f + 50.0f;
+bool gameOver = false;
+bool printedGameOver = false;
 
 SDL_Window* window = NULL;
 SDL_GLContext glcontext = NULL;
@@ -41,9 +42,8 @@ void initPipes() {
     }
 }
 
-
 void drawBird() {
-    glColor3f(1.0f, 1.0f, 0.0f);
+    glColor3f(0.918f, 0.675f, 0.545f);
     glBegin(GL_TRIANGLE_FAN);
     glVertex2f(-WINDOW_WIDTH / 4.0f, birdY);
     for (int i = 0; i <= 360; i += 10) {
@@ -55,9 +55,8 @@ void drawBird() {
     glEnd();
 }
 
-
 void drawPipes() {
-    glColor3f(0.2f, 1.0f, 0.2f);
+    glColor3f(0.427f, 0.349f, 0.478f);
     for (int i = 0; i < NUM_PIPES; ++i) {
         float x = pipes[i].x;
         float gapY = pipes[i].gapY;
@@ -81,12 +80,13 @@ void drawPipes() {
 }
 
 void drawGround() {
-    glColor3f(0.3f, 0.3f, 0.3f);
+    glColor3f(0.710f, 0.396f, 0.463f);
+
     glBegin(GL_QUADS);
     glVertex2f(-WINDOW_WIDTH / 2.0f, GROUND_Y);
     glVertex2f(WINDOW_WIDTH / 2.0f, GROUND_Y);
-    glVertex2f(WINDOW_WIDTH / 2.0f, GROUND_Y - 20.0f);
-    glVertex2f(-WINDOW_WIDTH / 2.0f, GROUND_Y - 20.0f);
+    glVertex2f(WINDOW_WIDTH / 2.0f, -WINDOW_HEIGHT + GROUND_Y);
+    glVertex2f(-WINDOW_WIDTH / 2.0f, -WINDOW_HEIGHT + GROUND_Y);
     glEnd();
 }
 
@@ -102,10 +102,34 @@ void updatePhysics(float dt) {
             pipes[i].gapY = (rand() % 300) - 150;
         }
     }
-
+    
     if (birdY - BIRD_RADIUS < GROUND_Y) {
         birdY = GROUND_Y + BIRD_RADIUS;
         velocityY = 0.0f;
+    }
+}
+
+void checkCollision() {
+    float birdX = -WINDOW_WIDTH / 4.0f;
+
+    for (int i = 0; i < NUM_PIPES; ++i) {
+        float pipeX = pipes[i].x;
+        float pipeLeft = pipeX;
+        float pipeRight = pipeX + PIPE_WIDTH;
+        float gapY = pipes[i].gapY;
+
+        bool withinX = birdX + BIRD_RADIUS > pipeLeft && birdX - BIRD_RADIUS < pipeRight;
+        bool outsideGap = birdY + BIRD_RADIUS > gapY + PIPE_GAP / 2.0f ||
+            birdY - BIRD_RADIUS < gapY - PIPE_GAP / 2.0f;
+
+        if (withinX && outsideGap) {
+            gameOver = true;
+            return;
+        }
+    }
+
+    if (birdY - BIRD_RADIUS < GROUND_Y) {
+        gameOver = true;
     }
 }
 
@@ -113,13 +137,50 @@ void flap() {
     velocityY = FLAP_STRENGTH;
 }
 
+void resetGame() {
+    birdY = 0.0f;
+    velocityY = 0.0f;
+    initPipes();
+    gameOver = false;
+    printedGameOver = false;
+    previousTime = SDL_GetTicks();  // Prevent big dt
+}
+
+void drawGameOver() {
+    // Draw a semi-transparent rectangle behind the X
+    glColor3f(0.110f, 0.114f, 0.129f);
+    glBegin(GL_QUADS);
+    glVertex2f(-200.0f, 200.0f);
+    glVertex2f(200.0f, 200.0f);
+    glVertex2f(200.0f, -200.0f);
+    glVertex2f(-200.0f, -200.0f);
+    glEnd();
+
+    // Draw a red X using two thick diagonal lines
+    glLineWidth(10.0f);
+    glColor3f(0.733f, 0.608f, 0.690f);
+    glBegin(GL_LINES);
+    glVertex2f(-150.0f, -150.0f);
+    glVertex2f(150.0f, 150.0f);
+
+    glVertex2f(-150.0f, 150.0f);
+    glVertex2f(150.0f, -150.0f);
+    glEnd();
+
+    if (!printedGameOver) {
+        printf("GAME OVER - Press SPACE to restart\n");
+        printedGameOver = true;
+    }
+}
+
+
+
 SDL_AppResult SDL_AppInit(void** appstate, int argc, char* argv[]) {
     SDL_Init(SDL_INIT_VIDEO);
-
     window = SDL_CreateWindow("Flappy Bird Clone", WINDOW_WIDTH, WINDOW_HEIGHT, SDL_WINDOW_OPENGL);
     glcontext = SDL_GL_CreateContext(window);
 
-    glClearColor(0.0f, 0.0f, 0.3f, 1.0f);
+    glClearColor(0.208f, 0.314f, 0.439f, 1.0f);
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
     glOrtho(-WINDOW_WIDTH / 2.0f, WINDOW_WIDTH / 2.0f,
@@ -127,16 +188,25 @@ SDL_AppResult SDL_AppInit(void** appstate, int argc, char* argv[]) {
         -1.0f, 1.0f);
     glMatrixMode(GL_MODELVIEW);
 
-    birdY = 0.0f;
-    velocityY = 0.0f;
-    initPipes();
+    resetGame();
     previousTime = SDL_GetTicks();
     return SDL_APP_CONTINUE;
 }
 
 SDL_AppResult SDL_AppEvent(void* appstate, SDL_Event* event) {
     if (event->type == SDL_EVENT_QUIT) return SDL_APP_SUCCESS;
-    if (event->type == SDL_EVENT_KEY_DOWN) flap();
+
+    if (event->type == SDL_EVENT_KEY_DOWN) {
+        if (event->key.key == SDLK_SPACE) {
+            if (gameOver) {
+                resetGame();
+            }
+            else {
+                flap();
+            }
+        }
+    }
+
     return SDL_APP_CONTINUE;
 }
 
@@ -145,7 +215,10 @@ SDL_AppResult SDL_AppIterate(void* appstate) {
     float dt = (currentTime - previousTime) / 1000.0f;
     previousTime = currentTime;
 
-    updatePhysics(dt);
+    if (!gameOver) {
+        updatePhysics(dt);
+        checkCollision();
+    }
 
     glClear(GL_COLOR_BUFFER_BIT);
     glLoadIdentity();
@@ -154,11 +227,16 @@ SDL_AppResult SDL_AppIterate(void* appstate) {
     drawPipes();
     drawBird();
 
+    if (gameOver) {
+        drawGameOver();  // <-- Draw the game over screen
+    }
+
     SDL_GL_SwapWindow(window);
     SDL_Delay(16);
 
     return SDL_APP_CONTINUE;
 }
+
 
 void SDL_AppQuit(void* appstate, SDL_AppResult result) {
     SDL_GL_DestroyContext(glcontext);
