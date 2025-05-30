@@ -194,12 +194,6 @@ void drawGameOver() {
     glVertex2f(-150.0f, 150.0f);
     glVertex2f(150.0f, -150.0f);
     glEnd();
-
-    // Print Game Over message once
-    if (!hasPrintedGameOverMessage) {
-        printf("GAME OVER - Press SPACE to restart\n");
-        hasPrintedGameOverMessage = true;
-    }
 }
 
 // SDL app initialization
