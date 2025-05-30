@@ -1,119 +1,167 @@
-#define SDL_MAIN_USE_CALLBACKS 1 
+#define SDL_MAIN_USE_CALLBACKS 1
 #include <SDL3/SDL.h>
 #include <SDL3/SDL_main.h>
 #include <SDL3/SDL_opengl.h>
+#include <math.h>
+#include <stdbool.h>
+#include <math.h>
+#include <stdlib.h>
 
-#define WINDOW_WIDTH 640
-#define WINDOW_HEIGHT 480
+#include <corecrt_math_defines.h>
 
-static SDL_Window* window = NULL;
+#define WINDOW_WIDTH 800
+#define WINDOW_HEIGHT 600
+#define BIRD_RADIUS 15.0f
+#define PIPE_WIDTH 80.0f
+#define PIPE_GAP 200.0f
+#define PIPE_SPEED 200.0f
+#define NUM_PIPES 3
+
+float birdY = 0.0f;
+float velocityY = 0.0f;
+const float GRAVITY = -900.0f;
+const float FLAP_STRENGTH = 300.0f;
+const float GROUND_Y = -WINDOW_HEIGHT / 2.0f + 50.0f;
+
+SDL_Window* window = NULL;
 SDL_GLContext glcontext = NULL;
+Uint64 previousTime, currentTime;
 
-float groundLevel = 0.0f;
+struct Pipe {
+    float x;
+    float gapY;
+};
 
-float verticalVelocity = 0.0f;
-float gravity = -0.09f;
+struct Pipe pipes[NUM_PIPES];
 
-float obstacleX = WINDOW_WIDTH - 50.0f;
-float obstacleMovementSpeed = 0.5f;
-float obstacleStartX = WINDOW_WIDTH - 50.0f;
-float obstacleResetDistance = 300.0f;
-
-void setPerspective(float fovY, float aspect, float zNear, float zFar) {
-    float ymax = 1;
-    float xmax = ymax * aspect;
-    glFrustum(-xmax, xmax, -ymax, ymax, zNear, zFar);
+void initPipes() {
+    for (int i = 0; i < NUM_PIPES; ++i) {
+        pipes[i].x = WINDOW_WIDTH / 2.0f + i * 300.0f;
+        pipes[i].gapY = (rand() % 300) - 150;
+    }
 }
 
-SDL_AppResult SDL_AppInit(void** appstate, int argc, char* argv[])
-{
-    if (!SDL_Init(SDL_INIT_VIDEO)) {
-        SDL_Log("Couldn't initialize SDL: %s", SDL_GetError());
-        return SDL_APP_FAILURE;
+
+void drawBird() {
+    glColor3f(1.0f, 1.0f, 0.0f);
+    glBegin(GL_TRIANGLE_FAN);
+    glVertex2f(-WINDOW_WIDTH / 4.0f, birdY);
+    for (int i = 0; i <= 360; i += 10) {
+        float angle = i * M_PI / 180.0f;
+        float x = BIRD_RADIUS * cosf(angle);
+        float y = BIRD_RADIUS * sinf(angle);
+        glVertex2f(-WINDOW_WIDTH / 4.0f + x, birdY + y);
     }
-
-    window = SDL_CreateWindow("OpenGL House", WINDOW_WIDTH, WINDOW_HEIGHT, SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE);
-    if (!window) {
-        SDL_Log("Couldn't create window: %s", SDL_GetError());
-        return SDL_APP_FAILURE;
-    }
-
-    SDL_SetAppMetadata("OpenGL House", "1.0", "com.bohdanstarunskyi.house2d");
-
-    glcontext = SDL_GL_CreateContext(window);
-    glClearColor(0.5f, 0.7f, 1.0f, 1.0f);
-
-    glMatrixMode(GL_PROJECTION);
-    glLoadIdentity();
-    glOrtho(0, WINDOW_WIDTH, 0, WINDOW_HEIGHT, -1, 1);
-    glMatrixMode(GL_MODELVIEW);
-    glLoadIdentity();
-
-    return SDL_APP_CONTINUE;
+    glEnd();
 }
 
-SDL_AppResult SDL_AppEvent(void* appstate, SDL_Event* event)
-{
-    if (event->type == SDL_EVENT_QUIT) {
-        return SDL_APP_SUCCESS;
+
+void drawPipes() {
+    glColor3f(0.2f, 1.0f, 0.2f);
+    for (int i = 0; i < NUM_PIPES; ++i) {
+        float x = pipes[i].x;
+        float gapY = pipes[i].gapY;
+
+        // Top pipe
+        glBegin(GL_QUADS);
+        glVertex2f(x, gapY + PIPE_GAP / 2.0f);
+        glVertex2f(x + PIPE_WIDTH, gapY + PIPE_GAP / 2.0f);
+        glVertex2f(x + PIPE_WIDTH, WINDOW_HEIGHT / 2.0f);
+        glVertex2f(x, WINDOW_HEIGHT / 2.0f);
+        glEnd();
+
+        // Bottom pipe
+        glBegin(GL_QUADS);
+        glVertex2f(x, -WINDOW_HEIGHT / 2.0f);
+        glVertex2f(x + PIPE_WIDTH, -WINDOW_HEIGHT / 2.0f);
+        glVertex2f(x + PIPE_WIDTH, gapY - PIPE_GAP / 2.0f);
+        glVertex2f(x, gapY - PIPE_GAP / 2.0f);
+        glEnd();
     }
-    if (event->type == SDL_EVENT_KEY_DOWN) {
-        if (event->key.key == SDLK_SPACE) {
-            verticalVelocity += 300.0f;
+}
+
+void drawGround() {
+    glColor3f(0.3f, 0.3f, 0.3f);
+    glBegin(GL_QUADS);
+    glVertex2f(-WINDOW_WIDTH / 2.0f, GROUND_Y);
+    glVertex2f(WINDOW_WIDTH / 2.0f, GROUND_Y);
+    glVertex2f(WINDOW_WIDTH / 2.0f, GROUND_Y - 20.0f);
+    glVertex2f(-WINDOW_WIDTH / 2.0f, GROUND_Y - 20.0f);
+    glEnd();
+}
+
+void updatePhysics(float dt) {
+    birdY += velocityY * dt;
+    velocityY += GRAVITY * dt;
+
+    for (int i = 0; i < NUM_PIPES; ++i) {
+        pipes[i].x -= PIPE_SPEED * dt;
+
+        if (pipes[i].x + PIPE_WIDTH < -WINDOW_WIDTH / 2.0f) {
+            pipes[i].x += NUM_PIPES * 300.0f;
+            pipes[i].gapY = (rand() % 300) - 150;
         }
     }
+
+    if (birdY - BIRD_RADIUS < GROUND_Y) {
+        birdY = GROUND_Y + BIRD_RADIUS;
+        velocityY = 0.0f;
+    }
+}
+
+void flap() {
+    velocityY = FLAP_STRENGTH;
+}
+
+SDL_AppResult SDL_AppInit(void** appstate, int argc, char* argv[]) {
+    SDL_Init(SDL_INIT_VIDEO);
+
+    window = SDL_CreateWindow("Flappy Bird Clone", WINDOW_WIDTH, WINDOW_HEIGHT, SDL_WINDOW_OPENGL);
+    glcontext = SDL_GL_CreateContext(window);
+
+    glClearColor(0.0f, 0.0f, 0.3f, 1.0f);
+    glMatrixMode(GL_PROJECTION);
+    glLoadIdentity();
+    glOrtho(-WINDOW_WIDTH / 2.0f, WINDOW_WIDTH / 2.0f,
+        -WINDOW_HEIGHT / 2.0f, WINDOW_HEIGHT / 2.0f,
+        -1.0f, 1.0f);
+    glMatrixMode(GL_MODELVIEW);
+
+    birdY = 0.0f;
+    velocityY = 0.0f;
+    initPipes();
+    previousTime = SDL_GetTicks();
     return SDL_APP_CONTINUE;
 }
 
-void DrawBird() {
-    float bottom = groundLevel;
-    float ballRadius = 15.0f;
-    float ballCenterX = 50.0f;
-    float ballCenterY = bottom + ballRadius + verticalVelocity;
-
-    glColor3f(0.2f, 0.4f, 0.9f);
-    glBegin(GL_TRIANGLE_FAN);
-    glVertex2f(ballCenterX, ballCenterY);
-    int numSegments = 32;
-    for (int i = 0; i <= numSegments; ++i) {
-        float angle = 2.0f * 3.1415926f * i / numSegments;
-        float dx = cosf(angle) * ballRadius;
-        float dy = sinf(angle) * ballRadius;
-        glVertex2f(ballCenterX + dx, ballCenterY + dy);
-    }
-    glEnd();
+SDL_AppResult SDL_AppEvent(void* appstate, SDL_Event* event) {
+    if (event->type == SDL_EVENT_QUIT) return SDL_APP_SUCCESS;
+    if (event->type == SDL_EVENT_KEY_DOWN) flap();
+    return SDL_APP_CONTINUE;
 }
 
-void DrawObstacleShape() {
-    float obstacleY = groundLevel + 50.0f;
-    glColor3f(0.8f, 0.2f, 0.2f);
-    glBegin(GL_QUADS);
-    glVertex2f(obstacleX - 20.0f, obstacleY - 50.0f);
-    glVertex2f(obstacleX + 20.0f, obstacleY - 50.0f);
-    glVertex2f(obstacleX + 20.0f, obstacleY + 50.0f);
-    glVertex2f(obstacleX - 20.0f, obstacleY + 50.0f);
-    glEnd();
-}
+SDL_AppResult SDL_AppIterate(void* appstate) {
+    currentTime = SDL_GetTicks();
+    float dt = (currentTime - previousTime) / 1000.0f;
+    previousTime = currentTime;
 
-SDL_AppResult SDL_AppIterate(void* appstate)
-{
+    updatePhysics(dt);
+
     glClear(GL_COLOR_BUFFER_BIT);
     glLoadIdentity();
-    if (verticalVelocity > 0) {
-        verticalVelocity += gravity;
-    }
-    obstacleX -= obstacleMovementSpeed;
-    if (obstacleStartX - obstacleX >= obstacleResetDistance) {
-        obstacleX = obstacleStartX;
-    }
-    DrawBird();
-    DrawObstacleShape();
+
+    drawGround();
+    drawPipes();
+    drawBird();
+
     SDL_GL_SwapWindow(window);
+    SDL_Delay(16);
+
     return SDL_APP_CONTINUE;
 }
 
-void SDL_AppQuit(void* appstate, SDL_AppResult result)
-{
-    SDL_DestroyWindow(window);
+void SDL_AppQuit(void* appstate, SDL_AppResult result) {
     SDL_GL_DestroyContext(glcontext);
+    SDL_DestroyWindow(window);
+    SDL_Quit();
 }
